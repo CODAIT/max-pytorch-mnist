@@ -133,7 +133,19 @@ All you need to start wrapping your model is pre-processing, prediction and post
            return x
    ```
 
-2. In `core/model.py`, load the model under `__init__()` method.
+2. In `core/model.py`, import required modules at the beginning after the comments.
+
+   ```python
+   import io
+   import logging
+   from PIL import Image
+   import torch
+   from torchvision import transforms
+   from config import DEFAULT_MODEL_PATH
+   from model import MyConvNet
+   ```
+
+3. In `core/model.py`, load the model under `__init__()` method.
    Here, saved model `.pt` can be loaded using the below command:
 
    ```python
@@ -146,18 +158,6 @@ All you need to start wrapping your model is pre-processing, prediction and post
    self.transform = transforms.Compose(
        [transforms.ToTensor(),
          transforms.Normalize((0.5,), (0.5,))])
-   ```
-
-3. In `core/model.py`, import required modules at the beginning after the comments.
-
-   ```python
-   import io
-   import logging
-   from PIL import Image
-   import torch
-   from torchvision import transforms
-   from config import DEFAULT_MODEL_PATH
-   from model import MyConvNet
    ```
 
 4. In `core/model.py`, pre-processing functions required for the input should get into the `_pre_process` function.
