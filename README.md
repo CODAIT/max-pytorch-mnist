@@ -181,8 +181,8 @@ All you need to start wrapping your model is pre-processing, prediction and post
 
    ```python
    label_prediction = MAX_API.model('LabelPrediction', {
-   'prediction': fields.Integer(required=True),
-   'probability': fields.Float(required=True)
+       'prediction': fields.Integer(required=True),
+       'probability': fields.Float(required=True)
    })
    ```
 
