@@ -108,22 +108,7 @@ Pillow==7.1.2
 
 All you need to start wrapping your model is pre-processing, prediction and post-processing code.
 
-1. In `core/model.py`, load the model under `__init__()` method.
-   Here, saved model `.pt` can be loaded using the below command:
-
-   ```python
-   logger.info('Loading model from: {}...'.format(path))
-   self.net = MyConvNet()
-   self.net.load_state_dict(torch.load(path))  # load model
-   logger.info('Loaded model')
-
-   # Transform like what the training has done
-   self.transform = transforms.Compose(
-       [transforms.ToTensor(),
-         transforms.Normalize((0.5,), (0.5,))])
-   ```
-
-2. Create file `model/__init__.py`. Create the CNN that you used during training.
+1. Create file `model/__init__.py`. Create the CNN that you used during training.
 
    ```python
    from torch import nn
@@ -146,6 +131,21 @@ All you need to start wrapping your model is pre-processing, prediction and post
            x = F.relu(self.fc1(x))
            x = self.fc2(x)
            return x
+   ```
+
+2. In `core/model.py`, load the model under `__init__()` method.
+   Here, saved model `.pt` can be loaded using the below command:
+
+   ```python
+   logger.info('Loading model from: {}...'.format(path))
+   self.net = MyConvNet()
+   self.net.load_state_dict(torch.load(path))  # load model
+   logger.info('Loaded model')
+
+   # Transform like what the training has done
+   self.transform = transforms.Compose(
+       [transforms.ToTensor(),
+         transforms.Normalize((0.5,), (0.5,))])
    ```
 
 3. In `core/model.py`, import required modules at the beginning after the comments.
