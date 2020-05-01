@@ -1,170 +1,252 @@
-[![Build Status](https://travis-ci.com/IBM/MAX-Skeleton.svg?branch=master)](https://travis-ci.com/IBM/MAX-Skeleton)
+# MAX-PyTorch-MNIST
 
-# Model Asset Exchange Scaffolding
+Classify the handwritten digits.
 
-Docker based deployment skeleton for deep learning models on the Model Asset Exchange.
+![mnist](mnist.png)
 
-## Prerequisites:
+Data Source: http://yann.lecun.com/exdb/mnist/
 
-* You will need Docker installed. Follow the [installation instructions](https://docs.docker.com/install/) for your
-system.
-* Have the model saved in SavedModel format and uploaded to a public [Cloud Object Storage](https://console.bluemix.net/catalog/services/cloud-object-storage) bucket.
+Framework: PyTorch
 
-## Step-by-step Guide to Wrapping a Model
+# Requirements
 
-### 1. Clone the skeleton
-Clone the `MAX-skeleton` repository locally. In a terminal run the following command:
+1. Docker
+2. Python code editors
+3. Pre-trained model weights stored in a downloadable location
+4. List of required python packages
+5. Input pre-processing code
+6. Prediction/Inference code
+7. Output variables
+8. Output post-processing code
+
+# Steps
+
+1. [Fork the Template and Clone the Repository](#fork-the-template-and-clone-the-repository)
+2. [Update Dockerfile](#Update-dockerfile)
+3. [Update Package Requirements](#update-package-requirements)
+4. [Update API and Model Metadata](#update-api-and-model-metadata)
+5. [Update Scripts](#update-scripts)
+6. [Build the model Docker image](#build-the-model-docker-image)
+7. [Run the model server](#run-the-model-server)
+
+## Fork the Template and Clone the Repository
+
+1. Login to GitHub and go to [MAX Skeleton](https://github.com/IBM/MAX-Skeleton)
+
+2. Click on `Use this template` and provide a name for the repo.
+
+3. Clone the newly created repository using the below command:
+
 ```bash
-$ git clone https://github.com/IBM/MAX-Skeleton
-```
-The project files are structured into three main parts: model, api, and samples. The `model` directory will contain code used for loading the model and running the predictions. The `api` directory contains code to handle the inputs and outputs of the MAX microservice. The `samples` directory will contain sample data and notebooks for the user to try the service.
-
-Example:
-```
-./
-  app.py
-  model/
-    model.py
-  api/
-    metadata.py
-    predict.py
+$ git clone https://github.com/......
 ```
 
-### 2. Modify the Dockerfile
-In the [`Dockerfile`](Dockerfile) we need to modify the following `ARG` instructions with a link to the
-public object storage bucket and the name of the file containing the serialized model.
+## Update Dockerfile
 
-    ARG model_bucket=
-    ARG model_file=
+Update,
 
-Then, calculate and add the SHA512 hashes of the files that will be downloaded to `sha512sums.txt`. Note: the hashes should be
-of the files after any extraction (eg after un-taring or un-ziping).
+- `ARG model_bucket=` with the link to the model file you've created to public storage that can be downloaded
 
-To calculate the SHA512 sum of a file run:
-```bash
-$ sha512sum <FILE NAME>
+- `ARG model_file=` with the model file name.
+
+Alternatively, you can use our pre-trained model:
+
+```
+model_bucket = https://github.com/xuhdev/max-pytorch-mnist/raw/master/pretrained-model
+model_file = mnist-classifier.tar.gz
 ```
 
-### 3. Import the model in `core/model.py`
+Calculate and add the SHA512 hashes of the files that will be downloaded to sha512sums.txt.
 
-This is where we handle the framework specific code for running predictions. The model is
-loaded in the `ModelWrapper.__init__()` method. Any code that needs to run when
-the model is loaded is also placed here.
+Here, hash will be calculated for `mnist-classifier.pt` using the command:
 
-There are also separate functions for pre-processing, predictions, and post-processing that need to be implemented. The  `MAXModelWrapper` base class has a default `predict` method that internally calls these pre-processing, prediction, and post-processing functions.
-The model metadata should also be defined here.
-
-```python
-class ModelWrapper(MAXModelWrapper):
-
-    MODEL_META_DATA = {
-        'id': 'ID',
-        'name': 'MODEL NAME',
-        'description': 'DESCRIPTION',
-        'type': 'MODEL TYPE',
-        'source': 'MODEL SOURCE'
-        'license': 'LICENSE'
-    }
-
-    def __init__(self, path=DEFAULT_MODEL_PATH):
-        pass
-
-    def _pre_process(self, inp):
-        return inp
-
-    def _post_process(self, result):
-        return result
-
-    def _predict(self, x):
-        return x
+```
+sha512sum mnist-classifier.pt
 ```
 
-### 4. Add input/output parsing code in `api/predict.py`
+## Update Package Requirements
 
-The input and outputs requests are sent as JSON strings. We define the format of these requests using the `flask_restplus` package. In the skeleton we have the output response configured with the following schema:
+Add required python packages for running the model prediction to requirements.txt.
 
-```json
-{
-    "predictions": [
-        {
-            "probability": "float",
-            "label": "string",
-            "label_id": "string"
-        },
-    ],
-    "status": "string"
-}
+Following packages are required for this model:
+
+   - Pillow==7.1.2
+   - torch==1.5.0
+   - torchvision==0.6.0
+
+Therefore, you should add the following to `requirements.txt`:
+
 ```
-The `predict_response` and `label_prediction` variables can be modified to amend the schema for each model's specific response format.
-
-To define the input format for a prediction we use Flask-RESTPlus's request parsing interface. The default input takes in a file.
-
-### 5. Create MAXApp instance in `app.py`
-
-The following code is already in the skeleton, but you may need to manually add extra APIs if needed.
-```python
-from maxfw.core import MAXApp
-from api import ModelMetadataAPI, ModelPredictAPI
-from config import API_TITLE, API_DESC, API_VERSION
-
-max = MAXApp(API_TITLE, API_DESC, API_VERSION)
-max.add_api(ModelMetadataAPI, '/metadata')
-max.add_api(ModelPredictAPI, '/predict')
-max.run()
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.5.0+cpu
+torchvision==0.6.0+cpu
+Pillow==7.1.2
 ```
 
-### 6. Add integration tests
+## Update API and Model Metadata
 
-Add a few integration tests using `pytest` in `tests/test.py` to check that your model works. To enable Travis CI
-testing uncomment the `docker` commands and `pytest` command in `.travis.yml`.
+1. In `config.py`, update the API metadata.
 
-### 7. Add requirements
+  - API_TITLE
+  - API_DESC
+  - API_VERSION
 
-Add required python packages to `requirements.txt`
+2. Set `MODEL_NAME = 'mnist-classifier.pt'`
 
-## Testing Out the Model with Docker
+   _NOTE_: Model files are always downloaded to `assets` folder inside docker.
 
-### 1. Build the model Docker image
+3. In `core/model.py`, fill in the `MODEL_META_DATA`
+
+     - Model id
+     - Model name
+     - Description of the model
+     - Model type based on what the model does (e.g. Digit recognition)
+     - Source to the model belongs
+     - Model license
+
+## Update Scripts
+
+All you need to start wrapping your model is pre-processing, prediction and post-processing code.
+
+1. In `core/model.py`, load the model under `__init__()` method.
+   Here, saved model `.pt` can be loaded using the below command:
+
+   ```python
+   logger.info('Loading model from: {}...'.format(path))
+   self.net = MyConvNet()
+   self.net.load_state_dict(torch.load(path))  # load model
+   logger.info('Loaded model')
+
+   # Transform like what the training has done
+   self.transform = transforms.Compose(
+       [transforms.ToTensor(),
+         transforms.Normalize((0.5,), (0.5,))])
+   ```
+
+2. Create file `model/__init__.py`. Create the CNN that you used during training.
+
+   ```python
+   from torch import nn
+   import torch.nn.functional as F
+
+
+   class MyConvNet(nn.Module):
+       def __init__(self):
+           super().__init__()
+           self.conv1 = nn.Conv2d(1, 2, 5)
+           self.pool = nn.MaxPool2d(2, 2)
+           self.conv2 = nn.Conv2d(2, 6, 5)
+           self.fc1 = nn.Linear(96, 32)
+           self.fc2 = nn.Linear(32, 10)
+
+       def forward(self, x):
+           x = self.pool(F.relu(self.conv1(x)))
+           x = self.pool(F.relu(self.conv2(x)))
+           x = x.view(-1, 96)
+           x = F.relu(self.fc1(x))
+           x = self.fc2(x)
+           return x
+   ```
+
+3. In `core/model.py`, import required modules at the beginning after the comments.
+
+   ```python
+   import io
+   import logging
+   from PIL import Image
+   import torch
+   from torchvision import transforms
+   from config import DEFAULT_MODEL_PATH
+   from model import MyConvNet
+   ```
+
+4. In `core/model.py`, pre-processing functions required for the input should get into the `_pre_process` function.
+   Here, the input image needs to be read and converted into an array of acceptable shape.
+
+   ```python
+   with Image.open(io.BytesIO(inp)) as img:
+     img = self.transform(img)
+     img = img[None, :, :]  # Create a batch size of 1
+     logger.info('Loaded image... %d', img.size)
+     return img
+
+   return None
+   ```
+
+  _NOTE_: Pre-processing is followed by prediction function which accepts only one input,
+          so create a dictionary to hold the return results if needed. In this case, we only have one input so we
+          are good to go.
+
+5. Predicted digit and its probability are the expected output. Add these two fields to `label_prediction` in `api/predict.py`
+
+   ```python
+   label_prediction = MAX_API.model('LabelPrediction', {
+   'prediction': fields.Integer(required=True),
+   'probability': fields.Float(required=True)
+   })
+   ```
+
+ _NOTE_: These fields can very depending on the model.
+
+6. Place the prediction code under `_predict` method in `core/model.py`.
+   In the above step, we have defined two outputs. Now we need to extract these two results
+   from the model.
+
+   _NOTE_: Prediction is followed by post-processing function which accepts only one input,
+           so create a dictionary to hold the results in case of multiple outputs returned from the function.
+
+   ```python
+   return self.net(x)
+   ```
+
+7. Post-processing function will go under `_post_process` method in `core/model.py`.
+   Result from the above step will be the input to this step.
+
+   Here, result from the above step will contain prediction probability for all 10 classes (digit 0 to 9).
+
+   Output response has two fields `status` and `predictions` as defined in the `api/predict.py`.
+
+   ```python
+   predict_response = MAX_API.model('ModelPredictResponse', {
+     'status': fields.String(required=True, description='Response status message'),
+     'predictions': fields.List(fields.Nested(label_prediction), description='Predicted labels and probabilities')
+   })
+   ```
+
+   Predictions is of type list and holds the model results. Create a dictionary inside a list with key names used in `_predict` (step 4) and update the
+   model results accordingly.
+
+   ```python
+   probability, prediction = torch.max(result, dim=1)
+   return [{'probability': probability,
+            'prediction': prediction}]
+
+   ```
+
+8. Assign the result from post-processing to the appropriate response field in `api/predict.py`.
+
+   ```python
+   # Assign result
+   preds = self.model_wrapper.predict(input_data)
+   result['predictions'] = preds
+   ```
+
+9. Add test images to `samples/`. You can find MNIST test images in png format from https://github.com/myleott/mnist_png .
+
+## Build the model Docker image
 
 To build the docker image locally, run:
 
-```bash
-$ docker build -t max-model .
+```
+$ docker build -t max-pytorch-mnist .
 ```
 
 If you want to print debugging messages make sure to set `DEBUG=True` in `config.py`.
 
-### 2. Run the model server
+## Run the model server
 
 To run the docker image, which automatically starts the model serving API, run:
 
-```bash
-$ docker run -it -p 5000:5000 max-model
 ```
-
-### 3. Test the API
-
-The API server automatically generates an interactive Swagger documentation page. Go to `http://localhost:5000` to load it. From there you can explore the API and also create test requests.
-
-Use the `model/predict` endpoint to load a test file and get a response from the API.
-
-```bash
-$ curl -F "file=@<INPUT_FILE_PATH>" -XPOST http://localhost:5000/model/predict
+$ docker run -it -p 5000:5000 max-pytorch-mnist
 ```
-
-### 4. Run the Test Cases
-
-Install test required packages and run tests using `pytest`:
-
-```bash
-$ pip install -r requirements-test.txt
-$ pytest tests/test.py
-```
-
-## Provide documentation
-
-Copy the README files and add the relevant details for the specific model and use case, following the MAX standard. See other MAX models (e.g. [Object Detector](https://github.com/IBM/MAX-Object-Detector)) for examples. 
-
-More specifically, update the following README files:
-- Replace this `README.md` file with the completed `README-template.md` file
-- Complete the `samples/README.md` file with information about the data samples and the demo notebook, if any
