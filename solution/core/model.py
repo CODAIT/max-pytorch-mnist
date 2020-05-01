@@ -22,7 +22,7 @@ from PIL import Image
 import torch
 from torchvision import transforms
 from config import DEFAULT_MODEL_PATH
-from model import MyConvNet
+from core import MyConvNet
 
 logger = logging.getLogger()
 

@@ -108,7 +108,7 @@ Pillow==7.1.2
 
 All you need to start wrapping your model is pre-processing, prediction and post-processing code.
 
-1. Create file `model/__init__.py`. Create the CNN that you used during training.
+1. In `core/__init__.py`, create the CNN that you used during training.
 
    ```python
    from torch import nn
@@ -142,7 +142,7 @@ All you need to start wrapping your model is pre-processing, prediction and post
    import torch
    from torchvision import transforms
    from config import DEFAULT_MODEL_PATH
-   from model import MyConvNet
+   from core import MyConvNet
    ```
 
 3. In `core/model.py`, load the model under `__init__()` method.
