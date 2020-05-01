@@ -16,8 +16,13 @@
 
 from maxfw.model import MAXModelWrapper
 
+import io
 import logging
+from PIL import Image
+import torch
+from torchvision import transforms
 from config import DEFAULT_MODEL_PATH
+from model import MyConvNet
 
 logger = logging.getLogger()
 
@@ -25,28 +30,38 @@ logger = logging.getLogger()
 class ModelWrapper(MAXModelWrapper):
 
     MODEL_META_DATA = {
-        'id': 'ID',
-        'name': 'MODEL NAME',
-        'description': 'DESCRIPTION',
-        'type': 'MODEL TYPE',
-        'source': 'MODEL SOURCE',
-        'license': 'LICENSE'
+        'id': 'minst-classifier',
+        'name': 'MINST Classifier',
+        'description': 'A simple image classifier for MINST.',
+        'type': 'Image Classifier',
+        'source': '',
+        'license': 'My Open Source License'
     }
 
     def __init__(self, path=DEFAULT_MODEL_PATH):
         logger.info('Loading model from: {}...'.format(path))
-
-        # Load the graph
-
-        # Set up instance variables and required inputs for inference
-
+        self.net = MyConvNet()
+        self.net.load_state_dict(torch.load(path))
         logger.info('Loaded model')
 
+        # Transform like what the training has done
+        self.transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Normalize((0.5,), (0.5,))])
+
     def _pre_process(self, inp):
-        return inp
+        with Image.open(io.BytesIO(inp)) as img:
+            img = self.transform(img)
+            img = img[None, :, :]  # Create a batch size of 1
+            logger.info('Loaded image... %d', img.size)
+            return img
+
+        return None
 
     def _post_process(self, result):
-        return result
+        probability, prediction = torch.max(result, dim=1)
+        return [{'probability': probability,
+                 'prediction': prediction}]
 
     def _predict(self, x):
-        return x
+        return self.net(x)

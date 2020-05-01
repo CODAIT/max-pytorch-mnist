@@ -17,8 +17,8 @@
 FROM codait/max-base:v1.3.2
 
 # Fill in these with a link to the bucket containing the model and the model file name
-# ARG model_bucket=
-# ARG model_file=
+ARG model_bucket=https://github.com/xuhdev/max-pytorch-mnist/raw/master/pretrained-model
+ARG model_file=mnist-classifier.tar.gz
 
 WORKDIR /workspace
 

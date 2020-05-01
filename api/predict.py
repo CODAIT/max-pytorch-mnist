@@ -27,8 +27,7 @@ input_parser.add_argument('file', type=FileStorage, location='files', required=T
 
 # Creating a JSON response model: https://flask-restplus.readthedocs.io/en/stable/marshalling.html#the-api-model-factory
 label_prediction = MAX_API.model('LabelPrediction', {
-    'label_id': fields.String(required=False, description='Label identifier'),
-    'label': fields.String(required=True, description='Class label'),
+    'prediction': fields.Integer(required=True, description='Class label'),
     'probability': fields.Float(required=True)
 })
 
@@ -53,9 +52,7 @@ class ModelPredictAPI(PredictAPI):
         input_data = args['file'].read()
         preds = self.model_wrapper.predict(input_data)
 
-        # Modify this code if the schema is changed
-        label_preds = [{'label_id': p[0], 'label': p[1], 'probability': p[2]} for p in [x for x in preds]]
-        result['predictions'] = label_preds
+        result['predictions'] = preds
         result['status'] = 'ok'
 
         return result

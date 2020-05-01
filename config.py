@@ -22,10 +22,10 @@ RESTPLUS_MASK_SWAGGER = False
 SWAGGER_UI_DOC_EXPANSION = 'none'
 
 # API metadata
-API_TITLE = 'MAX'
-API_DESC = 'An API for serving models'
+API_TITLE = 'Image Classifier'
+API_DESC = 'A simple image classifier for MINST.'
 API_VERSION = '0.1'
 
 # default model
-MODEL_NAME = ''
+MODEL_NAME = 'mnist-classifier.pt'
 DEFAULT_MODEL_PATH = 'assets/{}'.format(MODEL_NAME)
